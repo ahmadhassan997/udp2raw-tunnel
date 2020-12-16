@@ -38,29 +38,24 @@ int server_on_timer_multi(conn_info_t &conn_info)  //for server. called when a t
 	if(conn_info.state.server_current_state==server_ready)
 	{
 		conn_info.blob->conv_manager.s.clear_inactive(ip_port);
-		/*
-		if( get_current_time()-conn_info.last_hb_recv_time>heartbeat_timeout )
-		{
-			mylog(log_trace,"%lld %lld\n",get_current_time(),conn_info.last_state_time);
-			conn_info.server_current_state=server_nothing;
-
-			//conn_manager.current_ready_ip=0;
-			//conn_manager.current_ready_port=0;
-
-			mylog(log_info,"changed state to server_nothing\n");
-			return 0;
-		}*/  //dont need to do this at server,conn_manger will clear expired connections
 
 		if(get_current_time()-conn_info.last_hb_sent_time<heartbeat_interval)
 		{
-			return 0;
+			// return 0;
 		}
+		int t = 50;
 
-		if(hb_mode==0)
+		if(hb_mode==0) {
 			send_safer(conn_info,'h',hb_buf,0);  /////////////send
-		else
-			send_safer(conn_info,'h',hb_buf,hb_len);
-		conn_info.last_hb_sent_time=get_current_time();
+			conn_info.last_hb_sent_time=get_current_time();
+		}
+		else {
+			while(t-- > 0) {
+				send_safer(conn_info,'h',hb_buf,hb_len);
+				conn_info.last_hb_sent_time=get_current_time();
+			}
+		}	
+		
 
 		mylog(log_debug,"heart beat sent<%x,%x>\n",conn_info.my_id,conn_info.oppsite_id);
 	}
